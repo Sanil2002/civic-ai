@@ -71,7 +71,8 @@ export const ChatArea = () => {
                     return;
                 }
                 let chunk = decoder.decode(value, { stream: true });
-                text += chunk.slice(0, chunk.length - 1);
+                chunk = chunk.slice(0, chunk.length - 1);
+                text += chunk
                 // const cleanedText = text.replace(/(\b\w)\s+(\w\b)/g, '$1$2');
 
                 // // Step 2: Remove unnecessary line breaks.
@@ -82,7 +83,7 @@ export const ChatArea = () => {
 
                 // // Step 4: Remove spaces around hyphens in hyphenated words.
                 // const fixedText = formattedText.replace(/\s*-\s*/g, '-');
-                
+
                 setMessages((prev) => {
                     if (prev[prev.length - 1].role !== "assistant") {
                         return [...prev, { role: "assistant", content: text }];
@@ -125,10 +126,12 @@ export const ChatArea = () => {
         let messageToSend;
         switch (actionType) {
             case 'summary':
-                messageToSend = `Summarize and give the response starting by bold letters, "Here is your Summarized text": ${lastAssistantMessage?.content}`;
+                messageToSend = `You are a bot that summarizes a content. stream by sentance, make markdown text friendly. If you don't know the answer, just say that you don't know. don't brake the word, Use three sentance maximum and keep the answer consise.\n
+    Here is the retrieved content: \n
+    ${lastAssistantMessage?.content}`;
                 break;
             case 'keynotes':
-                messageToSend = `Provide keynotes starting by bold letters, "Here are your Keynotes": ${lastAssistantMessage?.content}`;
+                messageToSend = `generate keynotes as list for the following: ${lastAssistantMessage?.content}`;
                 break;
             case 'actions':
                 messageToSend = `List actions starting by bold letters, "Here are your Actions": ${lastAssistantMessage?.content}`;
@@ -175,8 +178,8 @@ export const ChatArea = () => {
                 return;
             }
             let chunk = decoder.decode(value, { stream: true });
+            chunk = chunk.slice(0, chunk.length - 1);
             text += chunk
-            text = text.trimEnd().replace(/\s+/g, ' ');
             // .slice(0, chunk.length - 1);
             // setMessages((prev) => [
             //     ...prev,
@@ -205,7 +208,7 @@ export const ChatArea = () => {
                             {messages.map((msg, index) => (
                                 <div key={index} className={`flex flex-col gap-4 ${msg.role === "user" ? "justify-end " : "justify-end "}`}>
                                     <div className="flex flex-row gap-2">
-                                        <div className={` ${msg.role === "user" ? 'bg-gradient-to-t from-[#003] to-[#003] w-[32px] h-[32px] rounded-[15px]' : "w-[32px] h-[32px] border-none"} text-white flex shrink-0 items-center justify-center border-white border-2`}>{msg.role === "user" ? token.name?.slice(0, 1) : <img src={ncs}/>}</div>
+                                        <div className={` ${msg.role === "user" ? 'bg-gradient-to-t from-[#003] to-[#003] w-[32px] h-[32px] rounded-[15px]' : "w-[32px] h-[32px] border-none"} text-white flex shrink-0 items-center justify-center border-white border-2`}>{msg.role === "user" ? token.name?.slice(0, 1) : <img src={ncs} />}</div>
                                         <div className="flex flex-col items-start gap-[8px]">
                                             <p className={`${msg.role === "user" ? "bg-white" : "bg-white "} text-[18px] font-normal font-Nunito rounded-lg p-4 lg:max-w-[756px]`}><Markdown>{msg.content}</Markdown></p>
                                             {(!isLoading && done && msg.role === "assistant") && <div className="flex items-center gap-[8px]">
@@ -219,8 +222,8 @@ export const ChatArea = () => {
                                 </div>
                             ))}
                             {isLoading && (<div className="flex flex-row items-center gap-4 md:min-w-[460px] w-full">
-                                <Skeleton className="rounded-full" variant="circular" width={32} height={32}/>
-                                <Skeleton height={44} className="rounded-lg lg:w-[956px]"/>
+                                <Skeleton className="rounded-full" variant="circular" width={32} height={32} />
+                                <Skeleton height={44} className="rounded-lg lg:w-[956px] md:w-[456px] sm:w-full" />
                                 {/* <Skeleton height="70px" width="md:40rem"/> */}
 
                             </div>)}
@@ -231,7 +234,7 @@ export const ChatArea = () => {
                 <div className="flex w-full sm:py-[30px] flex-col items-center justify-center gap-[10px] bottom-0">
                     <div className="flex xl:max-w-[78.75rem] w-full h-[80px] py-[18px] px-[24px] justify-end flex-col items-center gap-[10px] rounded-[10px] bg-white">
                         <div className="flex justify-between items-center flex-grow shrink-0 basis-0 bg-white h-full w-full">
-                            <div className="flex lg:w-[638px] w-full items-center gap-[12px]">
+                            <div className="flex w-full items-center gap-[12px]">
                                 <div className="w-[32px] h-[32px] flex justify-center items-center gap-[10px] shrink-0 rounded-[10px] cursor-pointer">
                                     <Search />
                                 </div>

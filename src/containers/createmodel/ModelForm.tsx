@@ -1,9 +1,17 @@
+// import { useState } from "react"
 import Button from "../../components/atom/button/Button"
 import InputArea from "../../components/atom/inputarea/InputArea"
 import Imagesvg from "../../components/atom/svg/Imagesvg"
 import Plussvg from "../../components/atom/svg/Plussvg"
 
-export const ModelForm = () => {
+interface ModelFormProps {
+  name: string,
+  description: string,
+  setName: React.Dispatch<React.SetStateAction<string>>,
+  setDescription: React.Dispatch<React.SetStateAction<string>>
+}
+
+export const ModelForm:React.FC<ModelFormProps> = ({name,description,setDescription,setName}) => {
 
   return (
     <div className="flex w-full basis-1/4 flex-col items-end gap-[21px]">
@@ -15,8 +23,8 @@ export const ModelForm = () => {
             labelclassName="font-Nunito text-[16px] font-normal"
             label="Name your model"
             id="Name_your_model"
-            onChange={() => {}}
-            // value={""}
+            onChange={(e) => setName(e.target.value)}
+            value={name}
             type="text" />
             </div>
           <div className="flex h-full p-4 justify-center items-center gap-[10px] rounded-[10px] border-[1px] border-gray-700">
@@ -27,8 +35,8 @@ export const ModelForm = () => {
           labelclassName="font-Nunito text-[16px] font-normal"
           label="Description"
           id="Description"
-          onChange={() => { }}
-          // value={""}
+          onChange={(e) => setDescription(e.target.value)}
+          value={description}
           type="text" />
       </div>
 

@@ -5,7 +5,8 @@ import { API_ROOT } from "../../../services/apiServices/apis/api";
 import { useSelector } from "react-redux";
 // import Closesvg from "../../atom/svg/Closesvg";
 import Loader from "../../atom/Loader/Loader";
-import { Skeleton } from "@mui/material";
+// import { Skeleton } from "@mui/material";
+import Skelton from "../../atom/skeleton/skeleton.tsx"
 import Notification from "../../atom/Notification";
 import Markdown from 'marked-react';
 import ncs from '../../../assets/images/NetstratumLogo-Reound.png'
@@ -201,12 +202,24 @@ const Translate = () => {
     }
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      try{
         const files = e.target.files;
         if (files && files[0]) {
             let url = URL.createObjectURL(files[0])
             setAudioFile(url);
             setText(""); // Clear previous transcription
             await handleFileUpload();
+        }
+    } catch(error) {
+        Notification("Failed","Failed to upload File, Please try again later","danger");
+        console.log("Error on file upload", error);
+    }
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleSend(input);
         }
     };
 
@@ -215,7 +228,7 @@ const Translate = () => {
 
     return (<div className="w-full h-full overflow-hidden">
         <div className="grid grid-cols-10 md:grid-rows-7 items-center w-full h-full overflow-hidden">
-            <div className="flex row-start-1 md:row-span-6 row-span-5 col-span-full xl:col-start-2 xl:col-span-8 w-full h-[560px] pb-2">
+            <div className="flex row-start-1 md:row-span-6 row-span-5 col-span-full xl:col-start-2 xl:col-span-8 w-full h-[calc(100vh-300px)] pb-2">
 
 
                 <div className="chat-box flex flex-col gap-4 mt-4 overflow-auto lg:min-w-[656px] w-full">
@@ -226,7 +239,12 @@ const Translate = () => {
                             <span className="flex justify-center italic text-sm w-full text-gray-700">Select the Languages for Translation and press Enter</span>
                         </div>
                     </div>}
-                    {loading && <Skeleton height="196px" />}
+                    {loading && <div className="flex flex-row gap-3">
+                        <div className={`bg-gradient-to-t from-[#003] to-[#003] w-[32px] h-[32px] rounded-[15px] text-white flex shrink-0 items-center justify-center`}>{token.name?.slice(0, 1)}</div>
+                        <div className="md:w-[456px] lg:w-[60%] w-full">
+                            <Skelton shape="rectangle" text="Extracting....." height="100px" />
+                        </div>
+                    </div>}
                     {messages.map((msg, index) => (
                         <div key={index}>
                             <div className="flex flex-col items-start gap-[8px]">
@@ -234,8 +252,8 @@ const Translate = () => {
                                 {(msg.role === "assistant") &&
                                     <div className="flex flex-row gap-4">
                                         <div className={`w-[32px] h-[32px] rounded-[15px] flex shrink-0 items-center justify-center`}><img src={ncs} /></div>
-                                        <div className="flex flex-col gap-2">
-                                            <span className="bg-white text-lg font-normal font-Nunito rounded-lg p-4 w-fit flex flex-col gap-2"><h1 className="font-bold font-Nunito text-lg">Your Translated text:</h1><Markdown>{msg.content}</Markdown></span>
+                                        <div className="flex flex-col gap-2 lg:max-w-[60%]">
+                                            <span className="bg-white text-lg font-normal font-Nunito rounded-lg p-4 w-fit gap-2"><h1 className="font-bold font-Nunito text-lg flex flex-row">Your Translated text:</h1>{msg.content}</span>
                                             <div className="flex items-center gap-[8px]">
                                                 <button className="flex py-[6px] px-[12px] justify-center items-center gap-[10px] rounded-[50px] border-[1px] border-slate-500 hover:bg-slate-200 text-black font-Nunito text-[12px] font-normal" onClick={handleButtonClick}>Summary</button>
                                             </div>
@@ -245,7 +263,12 @@ const Translate = () => {
                         </div>
 
                     ))}
-                    {isLoading && <Loader size="md" />}
+                    {isLoading && <div className="flex flex-row gap-3">
+                        <div className={`w-[32px] h-[32px] rounded-[15px] flex shrink-0 items-center justify-center`}><img src={ncs} /></div>
+                        <div className="md:w-[456px] lg:w-[60%] w-full">
+                            <Skelton shape="rectangle" text="Translating...." height="100px" />
+                        </div>
+                    </div>}
                 </div>
             </div>
 
@@ -291,6 +314,7 @@ const Translate = () => {
                                 type="text"
                                 value={input}
                                 placeholder="Upload Voice Here"
+                                onKeyDown={handleKeyDown}
                                 onChange={(e) => setInput(e.target.value)}
                                 className=" w-full flex-grow rounded-[8px] font-Nunito text-[20px] text-black font-normal focus:outline-none overflow-scroll"
                             />

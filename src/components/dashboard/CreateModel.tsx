@@ -6,6 +6,10 @@ import { ModelForm } from "../../containers/createmodel/ModelForm"
 import Button from "../atom/button/Button"
 import DragDrop from "../atom/DragandDrop"
 import { useState } from "react"
+import { API_ROOT } from "../../services/apiServices/apis/api"
+import axios from "axios"
+import { useSelector } from "react-redux"
+import Notification from "../atom/Notification"
 
 // interface FileItem {
 //     type: string;
@@ -16,40 +20,84 @@ import { useState } from "react"
 interface FileState {
     file: File[];
     drop: boolean;
-  }
+}
 
 const CreateModel = () => {
 
-    const [file, setFile] = useState<FileState>({ file: [], drop: false })
+    const [files, setFile] = useState<FileState>({ file: [], drop: false })
+    const [name, setName] = useState<string>("")
+    const [description, setDescription] = useState<string>("")
+    const authToken = useSelector((state: any) => state.auth.authToken);
 
     const handleOnDragging = (drag: boolean) => {
         if (drag) {
-            !file.drop && setFile((prev: any) => ({ ...prev, drop: true }))
+            !files.drop && setFile((prev: any) => ({ ...prev, drop: true }))
         } else {
-            file.drop && setFile((prev: any) => ({ ...prev, drop: false }))
+            files.drop && setFile((prev: any) => ({ ...prev, drop: false }))
         }
     }
 
-    const handleDropFileChange = (file:any) => {
+    const handleDropFileChange = (file: any) => {
         // console.log("file", file);
-        setFile((prev: any) => ({ file:[...prev.file,file], drop: false }))
+        setFile((prev: any) => ({ file: [...prev.file, file], drop: false }))
         // console.log("file after dropping",file);
-        
+
     }
 
-    const handleTypeError = (error:any)=>{
-        console.log("error in type",error)        
+    const handleTypeError = (error: any) => {
+        console.log("error in type", error)
     }
 
     const handleRemoveFile = (index: number) => {
         setFile((prevState) => ({
-          ...prevState,
-          file: prevState.file.filter((_, i) => i !== index),
+            ...prevState,
+            file: prevState.file.filter((_, i) => i !== index),
         }));
-      };
+    };
+    // const formData= new FormData()
+    // const updatedfiles = files.file.forEach((file:any, index:any) => {
+    //     console.log("ghghghghggh",file);
 
-    console.log("file sample",file.file);
-    
+    //     formData.append(`file_${index}`, file);
+    //   });
+    const formData = new FormData();
+    files.file.forEach((file: File, index: number) => {
+      console.log("Appending file:", file);
+      formData.append(`files`, file);
+    });
+
+    const metadata = JSON.stringify({
+        model_name: name,
+        description: description,
+    });
+
+    const handleCreateModel = async () => {
+        try {
+            const response = await axios.post(`${API_ROOT}/privy/createModel`, formData,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${authToken}`,
+                        metadata,
+                    },
+                }
+            )
+            console.log(response.data);
+            Notification("Success", "Model Created Successfully", "success")
+
+        } catch (error) {
+            Notification("Failed", "Model is not created", "danger")
+            console.error("error uploading the file", error);
+        } finally {
+
+        }
+    }
+
+    console.log("file sample", formData);
+    console.log("full files", files);
+    // console.log("description of model", description);
+
+
+
 
     return (
         // <div className="flex p-[1.5rem] flex-col items-start gap-[1.313rem] rounded-[10px] bg-red-200">
@@ -116,8 +164,8 @@ const CreateModel = () => {
                 <div className="flex flex-col items-start gap-[12px]">
                     <h1 className="font-Nunito text-[18px] font-semibold">Upload File</h1>
 
-                    <DragDrop change={handleDropFileChange} file={file?.file} dragging={handleOnDragging} onTypeError={handleTypeError}>
-                    {/* fileTypes={file?.file?.type} */}
+                    <DragDrop change={handleDropFileChange} file={files?.file} dragging={handleOnDragging} onTypeError={handleTypeError}>
+                        {/* fileTypes={file?.file?.type} */}
                         <div className="flex p-[12px] flex-col justify-center items-center gap-[24px] rounded-[10px] border-[1px] border-black border-opacity-12 border-dashed bg-[#F5F4F2]">
                             <div className="flex flex-col items-center gap-[12px]">
                                 <div className="flex w-[4.375rem] h-[4.375rem] justify-center items-center gap-[10px] rounded-tl-none rounded-tr-2xl rounded-bl-2xl rounded-br-none">
@@ -139,26 +187,26 @@ const CreateModel = () => {
                 <div className="flex flex-col items-start gap-[12px]">
                     <h1 className="font-Nunito text-[18px] font-semibold">Files uploaded</h1>
                     <div className="flex p-[12px] items-start content-start gap-[12px] flex-grow shrink-0 balance-0 flex-wrap">
-                        {file.file.length>0 && file.file.map((file: File,index: number) => (
+                        {files.file.length > 0 && files.file.map((file: File, index: number) => (
                             <div key={index}
-                             className="flex min-h-[2rem] px-[16px] justify-center items-center gap-[8px] rounded-[50px] bg-[#F5F4F2]">
-                            <div className="flex flex-col md:flex-row items-center gap-[8px] pr-3">
-                                <SingleFilesvg className="flex shrink-0"/>
-                                <h1 className="font-Nunito text-md font-normal">{file.name}</h1>
-                                <div className="flex gap-3 items-center"><h1 className="font-Nunito text-md font-normal text-gray-300">{(file.size / 1048576).toFixed(4)}MB</h1>
-                                <Closesvg onClick={() => handleRemoveFile(index)} className="hover:bg-red-400 rounded-md flex shrink-0"/></div>
-                            </div>
-                        </div>))}
+                                className="flex min-h-[2rem] px-[16px] justify-center items-center gap-[8px] rounded-[50px] bg-[#F5F4F2]">
+                                <div className="flex flex-col md:flex-row items-center gap-[8px] pr-3">
+                                    <SingleFilesvg className="flex shrink-0" />
+                                    <h1 className="font-Nunito text-md font-normal">{file.name}</h1>
+                                    <div className="flex gap-3 items-center"><h1 className="font-Nunito text-md font-normal text-gray-300">{(file.size / 1048576).toFixed(4)}MB</h1>
+                                        <Closesvg onClick={() => handleRemoveFile(index)} className="hover:bg-red-400 rounded-md flex shrink-0" /></div>
+                                </div>
+                            </div>))}
                     </div>
                 </div>
 
             </div>
 
-            <ModelForm />
+            <ModelForm name={name} setName={setName} description={description} setDescription={setDescription} />
 
             <div className="flex justify-end items-end gap-[10px] w-full h-[44px] col-span-full">
                 <Button theme="secondary" className="w-[8.938rem] h-full px-[16px] justify-center items-center gap-[8px] rounded-[10px] font-Nunito text-md font-semibold hover:bg-[#8080FF] hover:text-white">Cancel</Button>
-                <Button theme="custom" className="h-full w-[9.688rem] px-[16px] justify-center items-center bg-[#8080FF] hover:bg-[#1616ff] rounded-[10px] font-Nunito text-md font-semibold text-white">Create Model</Button>
+                <Button theme="custom" className="h-full w-[9.688rem] px-[16px] justify-center items-center bg-[#8080FF] hover:bg-[#1616ff] rounded-[10px] font-Nunito text-md font-semibold text-white" click={handleCreateModel}>Create Model</Button>
             </div>
 
 
